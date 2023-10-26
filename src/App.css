@@ -1,0 +1,88 @@
+@charset "UTF-8";
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap');
+
+/*Reset & root*/
+* {
+    margin: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --color-white: #fff;
+    --color-body-bg-color: #e4ded2;
+    --color-text-color: #4d493e;
+    --color-gray-dark: #8f8472;
+    --color-gray-light: #c1b59f;
+    --color-box-shadow: rgba(0, 0, 0, .1);
+    
+    --font-main: 'Poppins', sans-serif;
+
+    --fs-xl: 3rem;
+    --fs-600: 1.8rem;
+    --fs-500: 1.2rem;
+    --fs-400: 1rem;
+}
+
+body, #root {
+    width: 100%;
+    height: 100%;
+}
+
+body, input, textarea, a {
+    color: var(--color-text-color);
+    font-family: var(--font-main);
+}
+
+body {
+    position: relative;
+    background: var(--color-body-bg-color);
+    font-size: 16px;
+    line-height: 1;
+}
+
+#root {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    min-height: 100vh;
+    width: 100%;
+    padding: 50px 0;
+}
+
+/*Custom resets*/
+input[type="number"] {
+    -webkit-appearance: textfield;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none;
+}
+
+::-moz-selection {
+    color: var(--color-white);
+    background: var(--color-text-color)
+}
+  
+::selection {
+    color: var(--color-white);
+    background: var(--color-text-color)
+}
+
+::placeholder {
+    color: var(--color-text-color);
+    opacity: .5;
+}
+
+/* Main */
+
+.periodic-table {
+    display: grid;
+    gap: .25rem;
+    grid-template-columns: repeat(18, );
+    grid-template-rows: repeat(10, 25px);
+}
