@@ -1,9 +1,11 @@
-import React from "react"
+import React, { useEffect } from "react"
 
 import { getCategoryAbbr } from "./utils"
 
 import Arrow from "./assets/Arrow"
 import Close from "./assets/Close"
+import Link from "./assets/Link"
+import ElectronShells from "./ElectronShells"
 
 export default function Modal(props) {
     const {
@@ -12,6 +14,7 @@ export default function Modal(props) {
         setActualAtom,
         prevAtom,
         nextAtom,
+        nobleGases,
     } = props
 
     function changeActualAtom(atom) {
@@ -23,22 +26,73 @@ export default function Modal(props) {
     }
 
     function getElectronConfiguration(config) {
-        return config.split(' ').map(c => {
-            const end = c.match(/\d+$/g)
-            const start = c.replace(/\d+$/g, '')
-            return( 
-                <>
-                    <span>{start}</span>
-                    <sup>{end}</sup>
-                    <span> </span>
-                </>
-            )
-        })
+        if (!config) return null
+        return (
+            <div>
+                {config.split(' ').map(c => {
+                        const end = c.match(/\d+$/g)
+                        const start = c.replace(/\d+$/g, '')
+                        const element = end ? (
+                            <>
+                                <span>{start}</span>
+                                <sup>{end}</sup>
+                                <span> </span>
+                            </>
+                        ) : (
+                            <>
+                                {c}
+                                <span> </span>
+                            </>
+                        )
+                        return ( 
+                            element
+                        )
+                })}
+            </div>
+        )
+    }
+
+    function temperature(kelvin) {
+        if (!kelvin) return (<span>----</span>)
+        const kelvinElement = (
+            <>
+                <span>{kelvin.toFixed(2)}<span className="kelvin">K</span></span>
+            </>
+        )
+        const celsius = kelvin - 273.15
+        const celsiusElement = (
+            <>
+                <span>{celsius.toFixed(2)}<span className="celsius">ºC</span></span>
+            </>
+        )
+        const fahrenheit = celsius * 9/5 + 32
+        const fahrenheitElement = (
+            <>
+                <span>{fahrenheit.toFixed(2)}<span className="fahrenheit">ºF</span></span>
+            </>
+        )
+
+        return (
+            <span>
+                {celsiusElement} = {fahrenheitElement} = {kelvinElement}
+            </span>
+        )
+    }
+
+    function lastNobleGas(nobles, n, config) {
+        const noblesFiltered = nobles.filter(noble => noble.number < n)
+        if (noblesFiltered.length <= 0) return null
+        const [lastNoble] = noblesFiltered.slice(-1)
+        const {symbol, electron_configuration} = lastNoble
+        const replaced = config.replace(electron_configuration, `[${symbol}]`)
+        return replaced
     }
 
     return (
         <>
-            <div className="modal">
+            <div className="modal" style={{
+                zIndex: '99999'
+            }}>
                 <div className="modal-container">
                     <div className="modal-header">
                         <span>Element Information</span>
@@ -50,9 +104,12 @@ export default function Modal(props) {
                         <div className={`atom-header ${getCategoryAbbr(actualAtom.category)}`}>
                             <span className="atom-symbol">{actualAtom.symbol}</span>
                             <span className="atom-name">{actualAtom.name}</span>
-                            <span className="atom-mass">{actualAtom.atomic_mass}</span>
+                            {/* <span className="atom-mass">{actualAtom.atomic_mass}</span> */}
                             <span className="atom-number">{actualAtom.number}</span>
                             <span className="atom-category">{actualAtom.category}</span>
+                            <a href={actualAtom.source} className="atom-link" target="_blank">
+                                <Link />
+                            </a>
                         </div>
                         <div className="atom-nav">
                             {prevAtom ? (
@@ -84,9 +141,13 @@ export default function Modal(props) {
                             <div className="atom-wrapper">
                                 <div className="atom-label general">General</div>
                                 <div className="atom-property">
-                                    <span className="atom-key">Name</span>
+                                    <span className="atom-key">Name:</span>
                                     <span>{actualAtom.name}</span>
                                 </div>
+                                {/* <div className="atom-property">
+                                    <span className="atom-key">Category:</span>
+                                    <span>{actualAtom.category}</span>
+                                </div> */}
                                 <div className="atom-property">
                                     <span className="atom-key">Discovered by:</span>
                                     <span>{actualAtom.discovered_by}</span>
@@ -95,9 +156,14 @@ export default function Modal(props) {
                                     <span className="atom-key">Named by:</span>
                                     <span>{actualAtom.named_by || '-----'}</span>
                                 </div>
-                                <div className="atom-property">
-                                    <span className="atom-key">Electron Shells:</span>
-                                    <span>K{getShell(actualAtom.shells[0])} L{getShell(actualAtom.shells[1])} M{getShell(actualAtom.shells[2])} N{getShell(actualAtom.shells[3])} O{getShell(actualAtom.shells[4])} P{getShell(actualAtom.shells[5])} Q{getShell(actualAtom.shells[6])} R{getShell(actualAtom.shells[7])}</span>
+                                <div className="atom-property horizontal tiny">
+                                    <div className="atom-content">
+                                        <span className="atom-key">Electron Shells:</span>
+                                        <span>K{getShell(actualAtom.shells[0])} L{getShell(actualAtom.shells[1])} M{getShell(actualAtom.shells[2])} N{getShell(actualAtom.shells[3])} O{getShell(actualAtom.shells[4])} P{getShell(actualAtom.shells[5])} Q{getShell(actualAtom.shells[6])} R{getShell(actualAtom.shells[7])}</span>
+                                    </div>
+                                    <ElectronShells 
+                                        shells={actualAtom.shells}
+                                    />
                                 </div>
                             </div>
                             <div className="atom-wrapper">
@@ -122,15 +188,25 @@ export default function Modal(props) {
                                 </div>
                                 <div className="atom-property">
                                     <span className="atom-key">Melting point:</span>
-                                    <span>{actualAtom.melt} <span className="kelvin">K</span> </span>
+                                    {temperature(actualAtom.melt)}
                                 </div>
                                 <div className="atom-property">
                                     <span className="atom-key">Boiling point: </span>
-                                    <span>{actualAtom.boil} <span className="kelvin">K</span> </span>
+                                    {temperature(actualAtom.boil)}
                                 </div>
                                 <div className="atom-property">
                                     <span className="atom-key">Molar Heat: </span>
-                                    <span>{actualAtom.molar_heat} (J·mol<sup>-1</sup>·K<sup>-1</sup>) </span>
+                                    <span>
+                                        {actualAtom.molar_heat ? (
+                                            <>
+                                                {actualAtom.molar_heat} (J·mol<sup>-1</sup>·K<sup>-1</sup>)
+                                            </>
+                                        ) : (
+                                            <>
+                                                ----
+                                            </>
+                                        )}
+                                    </span>
                                 </div>
                                 <div className="atom-property">
                                     <span className="atom-key">Phase: </span>
@@ -142,16 +218,19 @@ export default function Modal(props) {
                                 </div>
                                 <div className="atom-property">
                                     <span className="atom-key">Electron Configuration: </span>
-                                    <span>{getElectronConfiguration(actualAtom.electron_configuration)}</span>
+                                    <div>
+                                        {getElectronConfiguration(lastNobleGas(nobleGases, actualAtom.number, actualAtom.electron_configuration))}
+                                        {getElectronConfiguration(actualAtom.electron_configuration)}
+                                    </div>
                                 </div>
-                                {actualAtom.spectral_img && (
+                                {/* {actualAtom.spectral_img && (
                                     <div className="atom-property">
                                         <span className="atom-key">Spectral Emission: </span>
                                         <div className="atom-spectral">
                                             <img src={`https://upload.wikimedia.org/wikipedia/commons/e/e4/${actualAtom.spectral_img.replace('https://en.wikipedia.org/wiki/File:', '')}`} alt="spectral" />
                                         </div>
                                     </div>
-                                )}
+                                )} */}
                             </div>
                             <div className="atom-wrapper">
                                 <div className="atom-label reactivity">Reactivity</div>

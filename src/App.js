@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 
 import { data } from './data'
 
 import Modal from "./Modal"
+import SearchIcon from "./assets/SearchIcon"
+import Search from "./Search"
 
 import { getCategoryAbbr } from "./utils"
 
@@ -10,17 +12,14 @@ export default function App() {
     const [atomic, setAtomic] = useState(data)
     const [scroll, setScroll] = useState('left')
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [isSearchOpen, setIsSearchOpen] = useState(false)
     const [actualAtom, setActualAtom] = useState(null)
-
-    // useEffect(() => {
-    //     fetch("data.json")
-    //         .then(res => res.json())
-    //         .then(data => setAtomic(data.data))
-
-    // }, [])
+    const [hasShadow, setHasShadow] = useState(true)
+    const periodicTable = useRef(null)
 
     const prevAtom = actualAtom && atomic?.find(a => a.number === actualAtom.number - 1)
     const nextAtom  = actualAtom && atomic?.find(a => a.number === actualAtom.number + 1)
+    const nobleGases = atomic?.filter(a => a.category === 'noble gas')
 
     console.log(actualAtom)
 
@@ -61,6 +60,18 @@ export default function App() {
         setIsModalOpen(true)
     }
 
+    function getElementScrollbar() {
+        const hasHorizontalScrollbar = periodicTable.current.scrollWidth > periodicTable.current.clientWidth
+        setHasShadow(hasHorizontalScrollbar)
+    }
+
+    useEffect(() => {
+        window.addEventListener('resize', getElementScrollbar)
+        getElementScrollbar()
+
+        return () => window.removeEventListener('resize', getElementScrollbar)
+    }, [])
+
     return (
         <>
             {isModalOpen && (
@@ -70,16 +81,38 @@ export default function App() {
                     setActualAtom={setActualAtom}
                     prevAtom={prevAtom}
                     nextAtom={nextAtom}
+                    nobleGases={nobleGases}
+                />
+
+                // <ElectronShells 
+                //     shells={actualAtom.shells}
+                // />
+
+            )}
+
+            {isSearchOpen && (
+                <Search 
+                    atomic={atomic}
+                    setIsSearchOpen={setIsSearchOpen}
+                    setIsModalOpen={setIsModalOpen}
+                    setActualAtom={setActualAtom}
                 />
             )}
+
             <header className="header-periodic">
-                <div><input type="text" /></div>
+                <div className="input-wrapper">
+                    <SearchIcon 
+                        onClick={() => setIsSearchOpen(true)}
+                    />
+                </div>
                 <h1>Periodic Table</h1>
                 <nav></nav>
             </header>
             <main className="main-periodic">
-                <div className={`shadow ${scroll}`}></div>
-                <div className="periodic-wrapper" onScroll={handleScroll}>
+                {hasShadow && (
+                    <div className={`shadow ${scroll}`}></div>
+                )}
+                <div className="periodic-wrapper" onScroll={handleScroll} ref={periodicTable}>
                     {atomic ? (
                         <div className="periodic-table">
                             {atomicAlements}
