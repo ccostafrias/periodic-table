@@ -5,9 +5,14 @@ import { getCategoryAbbr } from "./utils"
 import Arrow from "./assets/Arrow"
 import Close from "./assets/Close"
 import Link from "./assets/Link"
+import Atom from "./assets/Atom"
+import Temperature from "./assets/Temperature"
+import Radiation from "./assets/Radiation"
+import Note from "./assets/Note"
+
 import ElectronShells from "./ElectronShells"
 
-export default function Modal(props) {
+export default function AtomicInfo(props) {
     const {
         setIsModalOpen,
         actualAtom,
@@ -139,7 +144,12 @@ export default function Modal(props) {
                         </div>
                         <div className="atom-properties"> 
                             <div className="atom-wrapper">
-                                <div className="atom-label general">General</div>
+                                <div className="atom-label general">
+                                    <Atom 
+                                        className="icon-smaller"
+                                    />
+                                    <span>General</span>
+                                </div>
                                 <div className="atom-property">
                                     <span className="atom-key">Name:</span>
                                     <span>{actualAtom.name}</span>
@@ -167,13 +177,23 @@ export default function Modal(props) {
                                 </div>
                             </div>
                             <div className="atom-wrapper">
-                                <div className="atom-label note">Note</div>
+                                <div className="atom-label note">
+                                    <Note 
+                                        className='icon-smaller'
+                                    />
+                                    <span>Note</span>
+                                </div>
                                 <div className="atom-property">
                                     <span>{actualAtom.summary}</span>
                                 </div>
                             </div>
                             <div className="atom-wrapper">
-                                <div className="atom-label properties">Properties</div>
+                                <div className="atom-label properties">
+                                    <Temperature
+                                        className='icon-smaller'
+                                    />
+                                    <span>Properties</span>
+                                </div>
                                 <div className="atom-property">
                                     <span className="atom-key">Atomic Number:</span>
                                     <span>{actualAtom.number}</span>
@@ -233,7 +253,12 @@ export default function Modal(props) {
                                 )} */}
                             </div>
                             <div className="atom-wrapper">
-                                <div className="atom-label reactivity">Reactivity</div>
+                                <div className="atom-label reactivity">
+                                    <Radiation 
+                                        className='icon-smaller'
+                                    />
+                                    <span>Reactivity</span>
+                                </div>
                                 <div className="atom-property">
                                     <span className="atom-key">Electronegativity: </span>
                                     <span>{actualAtom.electronegativity_pauling || '-----'}</span>

@@ -66,7 +66,9 @@ export default function Search(props) {
                 <div className="modal-container">
                     <div className="modal-header">
                         <div className="input-wrapper">
-                            <SearchIcon />
+                            <SearchIcon 
+                                className='searchicon icon-smaller'
+                            />
                             <input 
                                 type="text" 
                                 placeholder="Search: "
