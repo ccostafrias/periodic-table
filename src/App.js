@@ -2,20 +2,51 @@ import React, { useState, useEffect, useRef } from "react"
 
 import { data } from './data'
 
-import Modal from "./AtomicInfol"
-import SearchIcon from "./assets/SearchIcon"
-import Search from "./Search"
+import AtomicModal from "./AtomicModal"
+import SearchModal from "./SearchModal"
+import FilterModal from "./FilterModal"
+import ElectronModal from "./ElectronModal"
+
+import Search from "./assets/Search"
 import Github from "./assets/Github"
 
 import { getCategoryAbbr } from "./utils"
 
 export default function App() {
-    const [atomic, setAtomic] = useState(data)
-    const [scroll, setScroll] = useState('left')
-    const [isModalOpen, setIsModalOpen] = useState(false)
-    const [isSearchOpen, setIsSearchOpen] = useState(false)
+    const atomic = data
     const [actualAtom, setActualAtom] = useState(null)
+    const [actualCategory, setActualCategory] = useState(null)
+    const [scroll, setScroll] = useState('left')
     const [hasShadow, setHasShadow] = useState(true)
+
+    const [filter, setFilter] = useState({
+        prop: 'electrons',
+        alpha: 'symbol',
+        category: null,
+        order: 2,
+    })
+
+    const [isAtomicOpen, setIsAtomicOpen] = useState(false)
+    const [isSearchOpen, setIsSearchOpen] = useState(false)
+    const [isFilterOpen, setIsFilterOpen] = useState(false)
+    const [isElectronsOpen, setIsElectronOpen] = useState(false)
+    const [modalsOpen, setModalsOpen] = useState([
+        {
+            namea: 'atomic',
+            open: false,
+            level: 1,
+        },
+        {
+            name: 'search',
+            open: false,
+            level: 0,
+        },
+        {
+            name: 'filter',
+            open: false,
+            level: 2,
+        },
+    ])
 
     const periodicTable = useRef(null)
     const xBar = useRef(null)
@@ -44,9 +75,13 @@ export default function App() {
         const row = a.ypos
         const { symbol, category, name, number } = a
         const categoryAbbr = getCategoryAbbr(category)
+        const opacity = actualCategory ? (
+            actualCategory === a.category ? 1 : .5
+        ) : 1
         const style = {
             gridColumn: `${column} / span 1`,
-            gridRow: `${row} / span 1`
+            gridRow: `${row} / span 1`,
+            opacity: opacity,
         }
 
         return (
@@ -78,12 +113,22 @@ export default function App() {
     function handleClickElement(n) {
         const actualAtomValue = atomic.find(a => a.number === n)
         setActualAtom(actualAtomValue)
-        setIsModalOpen(true)
+        setIsAtomicOpen(true)
     }
 
     function getElementScrollbar() {
         const hasHorizontalScrollbar = periodicTable.current.scrollWidth > periodicTable.current.clientWidth
         setHasShadow(hasHorizontalScrollbar)
+    }
+
+    function highlightCategory(e) {
+        if (e.type.includes('enter')) {
+            const { target } = e
+            const atributte = target.closest('.category-wrapper').getAttribute('data-category')
+            setActualCategory(atributte)
+        } else {
+            setActualCategory(null)
+        }
     }
 
     useEffect(() => {
@@ -97,38 +142,79 @@ export default function App() {
         }
     }, [])
 
+    const categories = [...new Set(atomic.sort((a, b) => a.number - b.number).map(a => a.category))]
+    const categoriesElements = categories.map(c => {
+        return (
+            <div 
+                className="category-wrapper"
+                data-category={c}
+            >
+                <div
+                    className="category-content"
+                    onMouseEnter={highlightCategory}
+                    onMouseLeave={highlightCategory}
+                >
+                    <div className={`category-ball ${getCategoryAbbr(c)}`}></div>
+                    <span>{c}</span>
+                </div>
+            </div>
+        )
+    })
+
     return (
         <>
-            {isModalOpen && (
-                <Modal 
-                    setIsModalOpen={setIsModalOpen}
+            {isAtomicOpen && (
+                <AtomicModal 
+                    setIsAtomicOpen={setIsAtomicOpen}
+                    setIsElectronOpen={setIsElectronOpen}
                     actualAtom={actualAtom}
                     setActualAtom={setActualAtom}
                     prevAtom={prevAtom}
                     nextAtom={nextAtom}
                     nobleGases={nobleGases}
+                    filter={filter}
                 />
             )}
 
             {isSearchOpen && (
-                <Search 
+                <SearchModal 
                     atomic={atomic}
                     setIsSearchOpen={setIsSearchOpen}
-                    setIsModalOpen={setIsModalOpen}
+                    setIsAtomicOpen={setIsAtomicOpen}
+                    setIsFilterOpen={setIsFilterOpen}
                     setActualAtom={setActualAtom}
+                    filter={filter}
+                    setFilter={setFilter}
+                />
+            )}
+
+            {isFilterOpen && (
+                <FilterModal 
+                    setIsFilterOpen={setIsFilterOpen}
+                    filter={filter}
+                    setFilter={setFilter}
+                    atomic={atomic}
+                />
+            )}
+
+            {isElectronsOpen && (
+                <ElectronModal
+                    setIsElectronOpen={setIsElectronOpen}
+                    actualAtom={actualAtom}
+                    shells={actualAtom.shells}
                 />
             )}
 
             <header className="header-periodic">
-                <div className="input-wrapper">
-                    <SearchIcon 
-                        className='searchicon'
-                        onClick={() => setIsSearchOpen(true)}
-                    />
-                </div>
+                <Search 
+                    className='icon-normal'
+                    onClick={() => setIsSearchOpen(true)}
+                />
                 <h1>Periodic Table</h1>
                 <a href="https://github.com/ccostafrias" target="_blank">
-                    <Github />
+                    <Github 
+                        className='icon-normal'
+                    />
                 </a>
             </header>
             <div className="overflow-hidden"></div>
@@ -145,6 +231,9 @@ export default function App() {
                     </div>
                     <div className="periodic-table">
                         {atomicAlements}
+                        <div className="periodic-categories">
+                            {categoriesElements}
+                        </div>
                     </div>
                 </div>
             </main>

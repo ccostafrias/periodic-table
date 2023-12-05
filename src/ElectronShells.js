@@ -2,7 +2,9 @@ import React from 'react';
 
 export default function ElectronShells(props) {
     const {
-        shells
+        shells,
+        onClick,
+        classy,
     } = props
 
     function padArray(array, length, fill) {
@@ -44,7 +46,7 @@ export default function ElectronShells(props) {
 
     return (
         <>
-            <div className="electron-container">
+            <div className={`electron-container ${classy}`} onClick={onClick}>
                 {electronElements}
             </div>
         </>

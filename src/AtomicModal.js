@@ -1,6 +1,6 @@
 import React, { useEffect } from "react"
 
-import { getCategoryAbbr } from "./utils"
+import { getCategoryAbbr, getElectronConfiguration, getShell } from "./utils"
 
 import Arrow from "./assets/Arrow"
 import Close from "./assets/Close"
@@ -9,52 +9,25 @@ import Atom from "./assets/Atom"
 import Temperature from "./assets/Temperature"
 import Radiation from "./assets/Radiation"
 import Note from "./assets/Note"
+import Gas from "./assets/Gas"
+import Liquid from "./assets/Liquid"
+import Solid from "./assets/Solid"
 
 import ElectronShells from "./ElectronShells"
 
 export default function AtomicInfo(props) {
     const {
-        setIsModalOpen,
+        setIsAtomicOpen,
+        setIsElectronOpen,
         actualAtom,
         setActualAtom,
         prevAtom,
         nextAtom,
-        nobleGases,
+        filter,
     } = props
 
     function changeActualAtom(atom) {
         setActualAtom(atom)
-    }
-
-    function getShell(shell) {
-        return shell || 0
-    }
-
-    function getElectronConfiguration(config) {
-        if (!config) return null
-        return (
-            <div>
-                {config.split(' ').map(c => {
-                        const end = c.match(/\d+$/g)
-                        const start = c.replace(/\d+$/g, '')
-                        const element = end ? (
-                            <>
-                                <span>{start}</span>
-                                <sup>{end}</sup>
-                                <span> </span>
-                            </>
-                        ) : (
-                            <>
-                                {c}
-                                <span> </span>
-                            </>
-                        )
-                        return ( 
-                            element
-                        )
-                })}
-            </div>
-        )
     }
 
     function temperature(kelvin) {
@@ -84,25 +57,83 @@ export default function AtomicInfo(props) {
         )
     }
 
-    function lastNobleGas(nobles, n, config) {
-        const noblesFiltered = nobles.filter(noble => noble.number < n)
-        if (noblesFiltered.length <= 0) return null
-        const [lastNoble] = noblesFiltered.slice(-1)
-        const {symbol, electron_configuration} = lastNoble
-        const replaced = config.replace(electron_configuration, `[${symbol}]`)
-        return replaced
+    // function lastNobleGas(nobles, n, config) {
+    //     const noblesFiltered = nobles.filter(noble => noble.number < n)
+    //     if (noblesFiltered.length <= 0) return null
+    //     const [lastNoble] = noblesFiltered.slice(-1)
+    //     const {symbol, electron_configuration} = lastNoble
+    //     const replaced = config.replace(electron_configuration, `[${symbol}]`)
+    //     return replaced
+    // }
+
+    function getOutModal(e) {
+        const classy = e.target.className
+        if (classy === 'modal') {
+            setIsAtomicOpen(false)
+        }
     }
+
+    function backButton(e) {
+        const {button} = e
+        if (button === 3) {
+            setIsAtomicOpen(false)
+        }
+    }
+
+    const phaseIcon = (() => {
+        const phase = actualAtom.phase.toLowerCase()
+        if (phase === 'solid') {
+            return (
+                <div className={`atom-phase-wrapper ${phase}`}>
+                    <Solid
+                        className="icon-normal icon-nocursor"
+                    />
+                </div>
+            )
+        } 
+        if (phase === 'liquid') {
+            return (
+                <div className={`atom-phase-wrapper ${phase}`}>
+                    <Liquid
+                        className="icon-normal icon-nocursor"
+                    />
+                </div>
+            )
+        }
+        if (phase === 'gas') {
+            return (
+                <div className={`atom-phase-wrapper ${phase}`}>
+                    <Gas
+                        className="icon-normal icon-nocursor"
+                    />
+                </div>
+            )
+        }
+    })()
+
+    useEffect(() => {
+        window.addEventListener('mouseup', backButton)
+
+        return () => {
+            window.removeEventListener('mouseup', backButton)
+        }
+    }, [])
 
     return (
         <>
-            <div className="modal" style={{
-                zIndex: '99999'
-            }}>
+            <div 
+                className="modal" 
+                style={{
+                    zIndex: '9999'
+                }}
+                onClick={getOutModal}
+            >
                 <div className="modal-container">
                     <div className="modal-header">
                         <span>Element Information</span>
-                        <Close 
-                            onClick={() => setIsModalOpen(false)}
+                        <Close
+                            className='icon-normal'
+                            onClick={() => setIsAtomicOpen(false)}
                         />
                     </div>
                     <div className="modal-content">
@@ -123,6 +154,7 @@ export default function AtomicInfo(props) {
                                     <span className={`ball ${getCategoryAbbr(prevAtom.category)}`}></span>
                                     <span>{prevAtom.number}</span>
                                     <Arrow
+                                        className="icon-normal arrowicon"
                                         onClick={() => changeActualAtom(prevAtom)}                                       
                                     />
                                 </div>
@@ -135,6 +167,7 @@ export default function AtomicInfo(props) {
                                     <span className={`ball ${getCategoryAbbr(nextAtom.category)}`}></span>
                                     <span>{nextAtom.number}</span>
                                     <Arrow
+                                        className="icon-normal icon-rotate arrowicon"
                                         onClick={() => changeActualAtom(nextAtom)}
                                     />
                                  </div>
@@ -172,7 +205,9 @@ export default function AtomicInfo(props) {
                                         <span>K{getShell(actualAtom.shells[0])} L{getShell(actualAtom.shells[1])} M{getShell(actualAtom.shells[2])} N{getShell(actualAtom.shells[3])} O{getShell(actualAtom.shells[4])} P{getShell(actualAtom.shells[5])} Q{getShell(actualAtom.shells[6])} R{getShell(actualAtom.shells[7])}</span>
                                     </div>
                                     <ElectronShells 
+                                        onClick={() => setIsElectronOpen(true)}
                                         shells={actualAtom.shells}
+                                        classy={'atomic'}
                                     />
                                 </div>
                             </div>
@@ -228,9 +263,12 @@ export default function AtomicInfo(props) {
                                         )}
                                     </span>
                                 </div>
-                                <div className="atom-property">
-                                    <span className="atom-key">Phase: </span>
-                                    <span>{actualAtom.phase}</span>
+                                <div className="atom-property horizontal">
+                                    <div className="atom-content">
+                                        <span className="atom-key">Phase: </span>
+                                        <span>{actualAtom.phase}</span>
+                                    </div>
+                                    {phaseIcon}
                                 </div>
                                 <div className="atom-property">
                                     <span className="atom-key">Period: </span>
@@ -239,7 +277,7 @@ export default function AtomicInfo(props) {
                                 <div className="atom-property">
                                     <span className="atom-key">Electron Configuration: </span>
                                     <div>
-                                        {getElectronConfiguration(lastNobleGas(nobleGases, actualAtom.number, actualAtom.electron_configuration))}
+                                        {actualAtom.number > 2 && getElectronConfiguration(actualAtom.electron_configuration_semantic)}
                                         {getElectronConfiguration(actualAtom.electron_configuration)}
                                     </div>
                                 </div>
