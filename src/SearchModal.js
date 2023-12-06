@@ -5,20 +5,22 @@ import { getCategoryAbbr } from "./utils"
 import Close from "./assets/Close"
 import Search from "./assets/Search"
 import Filter from "./assets/Filter"
+import ArrowDown from "./assets/ArrowDown"
 import Arrow from "./assets/Arrow"
 
 export default function SearchModal(props) {
     const {
-        setIsSearchOpen,
         setActualAtom,
         setIsAtomicOpen,
         setIsFilterOpen,
+        setIsSearchOpen,
         atomic,
         filter,
         setFilter,
+        changeCategories,
+        searchInput,
+        setSearchInput,
     } = props
-
-    const [searchInput, setSearchInput] = useState()
 
     const properties = {
         electrons: 'number',
@@ -27,6 +29,11 @@ export default function SearchModal(props) {
         electronegativity: 'electronegativity_pauling',
         name: 'name',
         symbol: 'symbol',
+    }
+
+    const extra = {
+        mass: <span className="search-extra">(g/mol)</span>,
+        density: <span className="search-extra">(g/cm<sub>3</sub>)</span>,
     }
 
     const orderIcons = ['A-Z', 'Z-A', '0-9', '9-0']
@@ -38,8 +45,6 @@ export default function SearchModal(props) {
     const higherProp = atomic
         .reduce((prev, curr) => prev[properties[filter.prop]] > curr[properties[filter.prop]] ? prev : curr)
         [properties[filter.prop]]
-
-        console.log(filter.order)
     
     const searchElements = atomic.sort((a, b) => {
         const param = filter.order === 0 || filter.order === 1 ? filter.alpha : filter.prop
@@ -52,16 +57,18 @@ export default function SearchModal(props) {
         return 0
     })
     .filter(a => {
-        return filter.category ? a.category === filter.category : a
+        return filter.category.length > 0 ? filter.category.includes(a.category) : a
     })
     .filter(a => {
         if (!searchInput) return a
-        if (a.name.toLowerCase().includes(searchInput)) return a
-        if (a.symbol.toLowerCase().includes(searchInput)) return a
-        if (a.category.toLowerCase().includes(searchInput)) return a
-        if (String(a.number).includes(searchInput)) return a
-        if (String(a.atomic_mass).includes(searchInput)) return a
+        const search = searchInput.toLowerCase()
+        if (a.name.toLowerCase().includes(search)) return a
+        if (a.symbol.toLowerCase().includes(search)) return a
+        if (a.category.toLowerCase().includes(search)) return a
+        if (String(a.number).includes(search)) return a
+        if (String(a.atomic_mass).includes(search)) return a
     })
+    .filter(a => a[properties[filter.prop]])
     .map(a => {
         const prop = a[properties[filter.prop]] || 0
         const percentage = 100 * prop / higherProp
@@ -75,7 +82,11 @@ export default function SearchModal(props) {
                 }}>
                         <div className="prop-bar--content">
                             <span className="atom-search--number">{a.name}</span>
-                            <span className="atom-search--name">{prop}</span>
+                            <span className="atom-search--name">
+                                {prop}
+                                <span> </span>
+                                {extra[filter.prop]}
+                            </span>
                         </div>
                         <Arrow 
                             className="icon-smaller icon-reverse"
@@ -98,20 +109,6 @@ export default function SearchModal(props) {
         setSearchInput(value)
     }
 
-    function getOutModal(e) {
-        const classy = e.target.className
-        if (classy === 'modal') {
-            setIsSearchOpen(false)
-        }
-    }
-
-    function backButton(e) {
-        const {button} = e
-        if (button === 3) {
-            setIsSearchOpen(false)
-        }
-    }
-
     function changeFilterOrder() {
         setFilter(prevFilter => {
             const newOrder = prevFilter.order + 1
@@ -123,64 +120,80 @@ export default function SearchModal(props) {
         })
     }
 
-    useEffect(() => {
-        window.addEventListener('mouseup', backButton)
-
-        return () => {
-            window.removeEventListener('mouseup', backButton)
-        }
-    }, [])
+    const filterCategories = filter.category.map(f => {
+        return (
+            <div
+                className={`filter-categories search ${filter.category.includes(f) ? getCategoryAbbr(f) : ''}`}
+                onClick={() => changeCategories(f)}
+            >
+                {f}
+                <Close 
+                    className='icon-tiny'
+                />
+            </div>
+        )
+    })
 
     return (
         <>
-            <div 
-                className="modal" 
-                style={{
-                    zIndex: '9998'
-                }}
-                onClick={getOutModal}
-            >
-                <div className="modal-container">
-                    <div className="modal-header">
-                        <div className="input-wrapper">
-                            <Search
-                                className='searchicon icon-smaller'
-                            />
-                            <input 
-                                type="text" 
-                                placeholder="Search: "
-                                className="input-search"
-                                name="search"
-                                id="search"
-                                value={searchInput}
-                                onChange={handleChange}
-                                autoComplete="off"
-                            />
-                        </div>
-                        {searchInput && (
-                            <Close
-                                className='icon-smaller'
-                                onClick={() => setSearchInput('')}
-                            />
-                        )}
-                        <Filter 
-                            className='icon-smaller'
-                            onClick={() => setIsFilterOpen(true)}
-                        />
-                        <span className="filter-order" onClick={changeFilterOrder}>{orderElement}</span>
-                    </div>
-                    <div className="modal-content">
-                        {searchElements.length > 0 ? (
-                            searchElements
-                        ) : (
-                            <div className="not-found">
-                                <span>No results were found :(</span>
-                            </div>
-                        )}
-                    </div>
+            <div className="modal-header flex-wrap">
+                <div className="input-wrapper">
+                    <Search
+                        className='searchicon icon-smaller'
+                    />
+                    <input 
+                        type="text" 
+                        placeholder="Search: "
+                        className="input-search"
+                        name="search"
+                        id="search"
+                        value={searchInput}
+                        onChange={handleChange}
+                        autoComplete="off"
+                    />
+                </div>
+                {searchInput && (
+                    <Close
+                        className='icon-smaller'
+                        onClick={() => setSearchInput('')}
+                    />
+                )}
+                {/* <Filter 
+                    className='icon-smaller'
+                    onClick={() => setIsFilterOpen(true)}
+                /> */}
+                <div
+                    className="filter"
+                    onClick={() => setIsFilterOpen(true)}
+                >
+                    <div className={`filter-ball ${filter.prop}`}></div>
+                    <span className="filter-text">{filter.prop}</span>
+                    <ArrowDown className='icon-smaller'/>
+                </div>
+                <span className="filter-order" onClick={changeFilterOrder}>{orderElement}</span>
+                <Close
+                    className='icon-normal'
+                    onClick={() => setIsSearchOpen()}
+                />
+                <div className="search-categories">
+                    {filterCategories.length > 0 ? (
+                        <>
+                            {filterCategories}
+                        </>
+                    ) : (
+                        <div className="filter-categories search all">All categories</div>
+                    )}
                 </div>
             </div>
+            <div className="modal-content">
+                {searchElements.length > 0 ? (
+                    searchElements
+                ) : (
+                    <div className="not-found">
+                        <span>No results were found :(</span>
+                    </div>
+                )}
+            </div>
         </>
-       
     )
 }

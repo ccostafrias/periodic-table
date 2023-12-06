@@ -4,34 +4,11 @@ import { getCategoryAbbr } from "./utils"
 
 export default function FilterModal(props) {
     const {
-        setIsFilterOpen,
         filter,
         setFilter,
         atomic,
+        changeCategories,
     } = props
-
-
-    function getOutModal(e) {
-        const classy = e.target.className
-        if (classy.includes('modal')) {
-            setIsFilterOpen(false)
-        }
-    }
-
-    function backButton(e) {
-        const {button} = e
-        if (button === 3) {
-            setIsFilterOpen(false)
-        }
-    }
-
-    useEffect(() => {
-        window.addEventListener('mouseup', backButton)
-
-        return () => {
-            window.removeEventListener('mouseup', backButton)
-        }
-    }, [])
 
     const properties = ['density', 'electrons', 'mass', 'electronegativity']
     const alphabetic = ['name', 'symbol']
@@ -59,9 +36,6 @@ export default function FilterModal(props) {
     })
 
     function changeFilter(key, name) {
-        if (key === 'category') {
-
-        }
         setFilter(prevFilter => (
             {
                 ...prevFilter,
@@ -75,8 +49,8 @@ export default function FilterModal(props) {
     const categoriesElements = categories.map(c => {
         return (
             <button 
-                className={`filter-categories ${filter.category === c ? getCategoryAbbr(c) : ''}`}
-                onClick={() => changeFilter('category', c)}
+                className={`filter-categories ${filter.category.includes(c) ? getCategoryAbbr(c) : ''}`}
+                onClick={() => changeCategories(c)}
                 >
                 {c}
             </button>
@@ -85,33 +59,23 @@ export default function FilterModal(props) {
 
     return (
         <>
-            <div 
-                className="modal" 
-                style={{
-                    zIndex: '10000'
-                }}
-                onClick={getOutModal}
-            >
-                <div className="modal-container smaller">
-                    <div className="modal-inside">
-                        <div className="filter-wrapper">
-                            <span className="filter-label">Properties:</span>
-                            <div className="filter-properties">
-                                {propertiesElements}
-                            </div>
-                        </div>
-                        <div className="filter-wrapper">
-                            <span className="filter-label">Alphabetic order:</span>
-                            <div className="filter-properties">
-                                {alphabeticsElements}
-                            </div>
-                        </div>
-                        <div className="filter-wrapper">
-                            <span className="filter-label">Categories:</span>
-                            <div className="filter-properties">
-                                {categoriesElements}
-                            </div>
-                        </div>
+            <div className="modal-inside">
+                <div className="filter-wrapper">
+                    <span className="filter-label">Properties:</span>
+                    <div className="filter-properties">
+                        {propertiesElements}
+                    </div>
+                </div>
+                <div className="filter-wrapper">
+                    <span className="filter-label">Alphabetic order:</span>
+                    <div className="filter-properties">
+                        {alphabeticsElements}
+                    </div>
+                </div>
+                <div className="filter-wrapper">
+                    <span className="filter-label">Categories:</span>
+                    <div className="filter-properties">
+                        {categoriesElements}
                     </div>
                 </div>
             </div>

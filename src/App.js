@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
+import ReactModal from 'react-modal'
 
 import { data } from './data'
 
@@ -6,6 +7,8 @@ import AtomicModal from "./AtomicModal"
 import SearchModal from "./SearchModal"
 import FilterModal from "./FilterModal"
 import ElectronModal from "./ElectronModal"
+
+import Modal from "./Modal"
 
 import Search from "./assets/Search"
 import Github from "./assets/Github"
@@ -22,17 +25,13 @@ export default function App() {
     const [filter, setFilter] = useState({
         prop: 'electrons',
         alpha: 'symbol',
-        category: null,
         order: 2,
+        category: [],
     })
 
-    const [isAtomicOpen, setIsAtomicOpen] = useState(false)
-    const [isSearchOpen, setIsSearchOpen] = useState(false)
-    const [isFilterOpen, setIsFilterOpen] = useState(false)
-    const [isElectronsOpen, setIsElectronOpen] = useState(false)
     const [modalsOpen, setModalsOpen] = useState([
         {
-            namea: 'atomic',
+            name: 'atomic',
             open: false,
             level: 1,
         },
@@ -46,7 +45,14 @@ export default function App() {
             open: false,
             level: 2,
         },
+        {
+            name: 'electron',
+            open: false,
+            level: 2,
+        },
     ])
+
+    const [searchInput, setSearchInput] = useState()
 
     const periodicTable = useRef(null)
     const xBar = useRef(null)
@@ -54,7 +60,6 @@ export default function App() {
 
     const prevAtom = actualAtom && atomic?.find(a => a.number === actualAtom.number - 1)
     const nextAtom  = actualAtom && atomic?.find(a => a.number === actualAtom.number + 1)
-    const nobleGases = atomic?.filter(a => a.category === 'noble gas')
 
     console.log(actualAtom)
 
@@ -110,15 +115,15 @@ export default function App() {
         xBar.current.style.top = document.body.scrollTop
     }
 
-    function handleClickElement(n) {
-        const actualAtomValue = atomic.find(a => a.number === n)
-        setActualAtom(actualAtomValue)
-        setIsAtomicOpen(true)
-    }
-
     function getElementScrollbar() {
         const hasHorizontalScrollbar = periodicTable.current.scrollWidth > periodicTable.current.clientWidth
         setHasShadow(hasHorizontalScrollbar)
+    }
+
+    function handleClickElement(n) {
+        const actualAtomValue = atomic.find(a => a.number === n)
+        setActualAtom(actualAtomValue)
+        setIsAtomicOpen()
     }
 
     function highlightCategory(e) {
@@ -141,6 +146,24 @@ export default function App() {
             window.removeEventListener('scroll', handleScrollY)
         }
     }, [])
+    
+    function changeCategories(category) {
+        let newCategory
+        const hasCategory = filter.category.indexOf(category) !== -1
+        if (hasCategory) {
+            newCategory = filter.category.filter(c => c !== category)
+        } else (
+            newCategory = [...filter.category, category]
+        )
+
+        setFilter(prevFilter => {
+            return {
+                ...prevFilter,
+                category: newCategory,
+                // order: key === 'prop' ? 2 : 0,
+            }
+        })
+    }
 
     const categories = [...new Set(atomic.sort((a, b) => a.number - b.number).map(a => a.category))]
     const categoriesElements = categories.map(c => {
@@ -161,9 +184,46 @@ export default function App() {
         )
     })
 
+    function changeModalOpen(name) {
+        setModalsOpen(prev => {
+            return prev.map(m => {
+                return m.name === name ? (
+                    {...m, open: !m.open}
+                ) : (
+                    {...m}
+                )
+            })
+        })
+    }
+
+    function getModal(name, prop) {
+        const find = modalsOpen.find(m => m.name === name)
+        if (!find) return
+        return find[prop] 
+    }
+
+    const isAtomicOpen = getModal('atomic', 'open')
+    const setIsAtomicOpen = () => changeModalOpen('atomic')
+
+
+    const isSearchOpen = getModal('search', 'open')
+    const setIsSearchOpen = () => changeModalOpen('search')
+
+    const isFilterOpen = getModal('filter', 'open')
+    const setIsFilterOpen = () => changeModalOpen('filter')
+
+    const isElectronOpen = getModal('electron', 'open')
+    const setIsElectronOpen = () => changeModalOpen('electron')
+
     return (
         <>
-            {isAtomicOpen && (
+
+            <Modal
+                isOpen={isAtomicOpen} 
+                setModalOpen={setIsAtomicOpen}
+                level={getModal('atomic', 'level')}
+                classy='normal'
+            >
                 <AtomicModal 
                     setIsAtomicOpen={setIsAtomicOpen}
                     setIsElectronOpen={setIsElectronOpen}
@@ -171,39 +231,57 @@ export default function App() {
                     setActualAtom={setActualAtom}
                     prevAtom={prevAtom}
                     nextAtom={nextAtom}
-                    nobleGases={nobleGases}
                     filter={filter}
                 />
-            )}
+            </Modal>
 
-            {isSearchOpen && (
+            <Modal
+                isOpen={isSearchOpen} 
+                setModalOpen={setIsSearchOpen}
+                level={getModal('search', 'level')}
+                classy='normal'
+            >
                 <SearchModal 
                     atomic={atomic}
                     setIsSearchOpen={setIsSearchOpen}
                     setIsAtomicOpen={setIsAtomicOpen}
                     setIsFilterOpen={setIsFilterOpen}
                     setActualAtom={setActualAtom}
+                    searchInput={searchInput}
+                    setSearchInput={setSearchInput}
                     filter={filter}
                     setFilter={setFilter}
+                    changeCategories={changeCategories}
                 />
-            )}
+            </Modal>
 
-            {isFilterOpen && (
+            <Modal
+                isOpen={isFilterOpen} 
+                setModalOpen={setIsFilterOpen}
+                level={getModal('filter', 'level')}
+                classy='smaller'
+            >
                 <FilterModal 
                     setIsFilterOpen={setIsFilterOpen}
                     filter={filter}
                     setFilter={setFilter}
                     atomic={atomic}
+                    changeCategories={changeCategories}
                 />
-            )}
+            </Modal>
 
-            {isElectronsOpen && (
+            <Modal
+                isOpen={isElectronOpen} 
+                setModalOpen={setIsElectronOpen}
+                level={getModal('electron', 'level')}
+                classy='smaller'
+            >
                 <ElectronModal
                     setIsElectronOpen={setIsElectronOpen}
                     actualAtom={actualAtom}
-                    shells={actualAtom.shells}
+                    shells={actualAtom?.shells}
                 />
-            )}
+            </Modal>
 
             <header className="header-periodic">
                 <Search 
