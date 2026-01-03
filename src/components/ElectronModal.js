@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 
-import { getElectronConfiguration, getShell } from "./utils"
+import { getElectronConfiguration, getShell } from "../utils"
 
 import ElectronShells from "./ElectronShells"
 

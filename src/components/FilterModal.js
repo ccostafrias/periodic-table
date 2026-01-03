@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 
-import { getCategoryAbbr } from "./utils"
+import { getCategoryAbbr } from "../utils"
 
 export default function FilterModal(props) {
     const {

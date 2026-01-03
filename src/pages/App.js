@@ -1,19 +1,19 @@
 import React, { useState, useEffect, useRef } from "react"
 import ReactModal from 'react-modal'
 
-import { data } from './data'
+import { data } from '../data/data'
 
-import AtomicModal from "./AtomicModal"
-import SearchModal from "./SearchModal"
-import FilterModal from "./FilterModal"
-import ElectronModal from "./ElectronModal"
+import AtomicModal from "../components/AtomicModal"
+import SearchModal from "../components/SearchModal"
+import FilterModal from "../components/FilterModal"
+import ElectronModal from "../components/ElectronModal"
 
-import Modal from "./Modal"
+import Modal from "../components/Modal"
 
-import Search from "./assets/Search"
-import Github from "./assets/Github"
+import Search from "../assets/Search"
+import Github from "../assets/Github"
 
-import { getCategoryAbbr } from "./utils"
+import { getCategoryAbbr } from "../utils"
 
 export default function App() {
     const atomic = data

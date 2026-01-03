@@ -1,17 +1,17 @@
 import React, { useEffect } from "react"
 
-import { getCategoryAbbr, getElectronConfiguration, getShell } from "./utils"
+import { getCategoryAbbr, getElectronConfiguration, getShell } from "../utils"
 
-import Arrow from "./assets/Arrow"
-import Close from "./assets/Close"
-import Link from "./assets/Link"
-import Atom from "./assets/Atom"
-import Temperature from "./assets/Temperature"
-import Radiation from "./assets/Radiation"
-import Note from "./assets/Note"
-import Gas from "./assets/Gas"
-import Liquid from "./assets/Liquid"
-import Solid from "./assets/Solid"
+import Arrow from "../assets/Arrow"
+import Close from "../assets/Close"
+import Link from "../assets/Link"
+import Atom from "../assets/Atom"
+import Temperature from "../assets/Temperature"
+import Radiation from "../assets/Radiation"
+import Note from "../assets/Note"
+import Gas from "../assets/Gas"
+import Liquid from "../assets/Liquid"
+import Solid from "../assets/Solid"
 
 import ElectronShells from "./ElectronShells"
 

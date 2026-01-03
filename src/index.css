@@ -27,6 +27,7 @@
 }
 
 html, body, #root {
+    scroll-behavior: auto;
     color: var(--color-white);
 }
 
@@ -42,11 +43,11 @@ body {
 }
 
 #root {
-    display: flex;
+    /* display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 40px;
+    gap: 40px; */
     /* padding: 50px 0; */
 }
 
@@ -116,21 +117,24 @@ img {
 .main-periodic {
     --gap: .25rem;
     position: relative;
+    height: fit-content;
     /* max-width: calc(18 * var(--element-size) + 17 * var(--gap)); */
     width: 95%;
-    margin-bottom: 40px;
+    margin: 0 auto 40px;
     /* display: flex;
     align-items: center;
     justify-content: center; */
 }
 
 .periodic-wrapper {
+    margin-top: 40px;
     display: grid;
     grid-template-areas: 
         "- xbar"
         "ybar periodic";
     overflow-x: auto;
-    overflow-y: hidden;
+    /* overflow-y: hidden; */
+    position: relative;
 }
 
 .overflow-hidden {

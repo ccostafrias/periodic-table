@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react"
 
-import { getCategoryAbbr } from "./utils"
+import { getCategoryAbbr } from "../utils"
 
-import Close from "./assets/Close"
-import Search from "./assets/Search"
-import Filter from "./assets/Filter"
-import ArrowDown from "./assets/ArrowDown"
-import Arrow from "./assets/Arrow"
+import Close from "../assets/Close"
+import Search from "../assets/Search"
+import Filter from "../assets/Filter"
+import ArrowDown from "../assets/ArrowDown"
+import Arrow from "../assets/Arrow"
 
 export default function SearchModal(props) {
     const {
