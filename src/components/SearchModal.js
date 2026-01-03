@@ -73,7 +73,7 @@ export default function SearchModal(props) {
         const prop = a[properties[filter.prop]] || 0
         const percentage = 100 * prop / higherProp
         return (
-            <div className="atom-search--element" onClick={() => handleClick(a)}>
+            <div key={`atom-search-${a.number}`} className="atom-search--element" onClick={() => handleClick(a)}>
                 <div className={`atom-search--symbol ${getCategoryAbbr(a.category)}`}>
                     <span>{a.symbol}</span>
                 </div>
@@ -120,9 +120,10 @@ export default function SearchModal(props) {
         })
     }
 
-    const filterCategories = filter.category.map(f => {
+    const filterCategories = filter.category.map((f, i) => {
         return (
             <div
+                key={`filter-category-${i}`}
                 className={`filter-categories search ${filter.category.includes(f) ? getCategoryAbbr(f) : ''}`}
                 onClick={() => changeCategories(f)}
             >

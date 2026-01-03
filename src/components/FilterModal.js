@@ -13,9 +13,10 @@ export default function FilterModal(props) {
     const properties = ['density', 'electrons', 'mass', 'electronegativity']
     const alphabetic = ['name', 'symbol']
 
-    const propertiesElements = properties.map(p => {
+    const propertiesElements = properties.map((p, i) => {
         return (
             <button 
+                key={`prop-button-${i}`}
                 className={`prop-button ${p === filter.prop ? 'active' : ''}`}
                 onClick={() => changeFilter('prop', p)}
             >
@@ -24,9 +25,10 @@ export default function FilterModal(props) {
         )
     })
 
-    const alphabeticsElements = alphabetic.map(a => {
+    const alphabeticsElements = alphabetic.map((a, i) => {
         return (
             <button 
+                key={`alpha-button-${i}`}
                 className={`alpha-button ${a === filter.alpha ? 'active' : ''}`}
                 onClick={() => changeFilter('alpha', a)}
             >
@@ -46,9 +48,10 @@ export default function FilterModal(props) {
     }
 
     const categories = [...new Set(atomic.sort((a, b) => a.number - b.number).map(a => a.category))]
-    const categoriesElements = categories.map(c => {
+    const categoriesElements = categories.map((c, i) => {
         return (
             <button 
+                key={`category-button-${i}`}
                 className={`filter-categories ${filter.category.includes(c) ? getCategoryAbbr(c) : ''}`}
                 onClick={() => changeCategories(c)}
                 >

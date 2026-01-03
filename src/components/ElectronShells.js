@@ -14,15 +14,15 @@ export default function ElectronShells(props) {
         const [actualValue] = array
         return (
             array.length > 1 ? (
-            <div className='electron-shell'>
-                {balls(actualValue)}
-                {nestedElectrons(array.slice(1))}
-            </div>
-            ) : (
-            <div className='electron-shell'>
-                {balls(actualValue)}
-                <div className='electron-center' />
-            </div>
+                <div className='electron-shell'>
+                    {balls(actualValue)}
+                    {nestedElectrons(array.slice(1))}
+                </div>
+                ) : (
+                <div className='electron-shell'>
+                    {balls(actualValue)}
+                    <div className='electron-center' />
+                </div>
             )
         )
     }
@@ -31,7 +31,7 @@ export default function ElectronShells(props) {
         return (
             Array(n).fill().map((_, i) => {
                 return (
-                    <div className='electron-ball-wrapper' style={{
+                    <div key={`electron-ball-${i}`} className='electron-ball-wrapper' style={{
                         transform: `rotate(${360/n*i}deg)`,
                     }}>
                         <div className='electron-ball'></div>

@@ -15,7 +15,7 @@ import Solid from "../assets/Solid"
 
 import ElectronShells from "./ElectronShells"
 
-export default function AtomicInfo(props) {
+export default function AtomicModal(props) {
     const {
         setIsAtomicOpen,
         setIsElectronOpen,

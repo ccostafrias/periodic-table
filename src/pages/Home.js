@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
-import ReactModal from 'react-modal'
+import { useSearchParams } from "react-router-dom"
 
 import { data } from '../data/data'
 
@@ -21,6 +21,7 @@ export default function App() {
     const [actualCategory, setActualCategory] = useState(null)
     const [scroll, setScroll] = useState('left')
     const [hasShadow, setHasShadow] = useState(true)
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const [filter, setFilter] = useState({
         prop: 'electrons',
@@ -29,28 +30,24 @@ export default function App() {
         category: [],
     })
 
-    const [modalsOpen, setModalsOpen] = useState([
-        {
-            name: 'atomic',
+    const [modalsOpen, setModalsOpen] = useState({
+        atomic: {
             open: false,
             level: 1,
         },
-        {
-            name: 'search',
+        search: {
             open: false,
             level: 0,
         },
-        {
-            name: 'filter',
+        filter: {
             open: false,
             level: 2,
         },
-        {
-            name: 'electron',
+        electron: {
             open: false,
             level: 2,
         },
-    ])
+    })
 
     const [searchInput, setSearchInput] = useState()
 
@@ -61,21 +58,19 @@ export default function App() {
     const prevAtom = actualAtom && atomic?.find(a => a.number === actualAtom.number - 1)
     const nextAtom  = actualAtom && atomic?.find(a => a.number === actualAtom.number + 1)
 
-    console.log(actualAtom)
-
     const xBarElements = Array(18).fill().map((_, i) => {
         return (
-            <span className="x-element">{i + 1}</span>
+            <span key={`x-bar-${i}`} className="x-element">{i + 1}</span>
         )
     })
 
     const yBarElements = Array(10).fill().map((_, i) => {
         return (
-            <span className="y-element">{i + 1}</span>
+            <span key={`y-bar-${i}`} className="y-element">{i + 1}</span>
         )
     })
 
-    const atomicAlements = atomic?.map(a => {
+    const atomicElements = atomic?.map(a => {
         const column = a.xpos
         const row = a.ypos
         const { symbol, category, name, number } = a
@@ -93,7 +88,7 @@ export default function App() {
             <div 
                 style={style}
                 className={`atom ${categoryAbbr}`}
-                key={number}
+                key={`atom-${number}`}
                 onClick={() => handleClickElement(number)}
             >
                 <h2 className="atomic-symbol">{symbol}</h2>
@@ -120,8 +115,10 @@ export default function App() {
         setHasShadow(hasHorizontalScrollbar)
     }
 
+    const findAtom = (n) => atomic.find(a => a.number === n)
+
     function handleClickElement(n) {
-        const actualAtomValue = atomic.find(a => a.number === n)
+        const actualAtomValue = findAtom(n)
         setActualAtom(actualAtomValue)
         setIsAtomicOpen()
     }
@@ -135,17 +132,6 @@ export default function App() {
             setActualCategory(null)
         }
     }
-
-    useEffect(() => {
-        window.addEventListener('resize', getElementScrollbar)
-        window.addEventListener('scroll', handleScrollY)
-        getElementScrollbar()
-
-        return () => {
-            window.removeEventListener('resize', getElementScrollbar)
-            window.removeEventListener('scroll', handleScrollY)
-        }
-    }, [])
     
     function changeCategories(category) {
         let newCategory
@@ -171,6 +157,7 @@ export default function App() {
             <div 
                 className="category-wrapper"
                 data-category={c}
+                key={`category-${c}`}
             >
                 <div
                     className="category-content"
@@ -184,36 +171,101 @@ export default function App() {
         )
     })
 
-    function changeModalOpen(name) {
-        setModalsOpen(prev => {
-            return prev.map(m => {
-                return m.name === name ? (
-                    {...m, open: !m.open}
-                ) : (
-                    {...m}
-                )
-            })
-        })
+    function toggleModal(name) {
+    setModalsOpen(prev => ({
+        ...prev,
+        [name]: {
+        ...prev[name],
+        open: !prev[name].open
+        }
+    }));
     }
 
-    function getModal(name, prop) {
-        const find = modalsOpen.find(m => m.name === name)
+    function getModal(name) {
+        const find = modalsOpen[name]
         if (!find) return
-        return find[prop] 
+
+        return find.open
     }
 
-    const isAtomicOpen = getModal('atomic', 'open')
-    const setIsAtomicOpen = () => changeModalOpen('atomic')
+    const isAtomicOpen = getModal('atomic')
+    const setIsAtomicOpen = () => toggleModal('atomic')
+
+    const isSearchOpen = getModal('search')
+    const setIsSearchOpen = () => toggleModal('search')
+
+    const isFilterOpen = getModal('filter')
+    const setIsFilterOpen = () => toggleModal('filter')
+
+    const isElectronOpen = getModal('electron')
+    const setIsElectronOpen = () => toggleModal('electron')
+
+    useEffect(() => {
+        const openParams = Object.fromEntries([...searchParams])
+        
+        setModalsOpen(prev => {
+            const next = {};
+
+            for (const key in prev) {
+                let shouldOpen = Boolean(openParams[key]);
+
+                if (key === 'atomic' && shouldOpen) {
+                    const atomNumber = parseInt(openParams[key], 10);
+                    const atom = findAtom(atomNumber);
+                    console.log(atom);
+
+                    if (atom) {
+                        setActualAtom(atom);
+                    } else {
+                        shouldOpen = false;
+                    }
+                }
+
+                next[key] = {
+                    ...prev[key],
+                    open: shouldOpen
+                };
+            }
+
+            return next;
+        });
 
 
-    const isSearchOpen = getModal('search', 'open')
-    const setIsSearchOpen = () => changeModalOpen('search')
+    }, []);
 
-    const isFilterOpen = getModal('filter', 'open')
-    const setIsFilterOpen = () => changeModalOpen('filter')
+    useEffect(() => {
+        if (Object.values(modalsOpen).every(modal => !modal.open)) {
+            setSearchParams({});
+            return
+        }
 
-    const isElectronOpen = getModal('electron', 'open')
-    const setIsElectronOpen = () => changeModalOpen('electron')
+        setSearchParams(prevParams => {
+            for (const key in modalsOpen) {
+                if (modalsOpen[key].open) {
+                    if (key === 'atomic' && actualAtom) {
+                        prevParams.set('atomic', actualAtom.number)
+                        continue
+                    }
+                    prevParams.set(key, true)
+                } else {
+                    prevParams.delete(key)
+                }
+            }
+            return prevParams
+        })
+    }, [modalsOpen])
+
+    // listeners
+    useEffect(() => {
+        window.addEventListener('resize', getElementScrollbar)
+        window.addEventListener('scroll', handleScrollY)
+        getElementScrollbar()
+
+        return () => {
+            window.removeEventListener('resize', getElementScrollbar)
+            window.removeEventListener('scroll', handleScrollY)
+        }
+    }, [])
 
     return (
         <>
@@ -221,7 +273,7 @@ export default function App() {
             <Modal
                 isOpen={isAtomicOpen} 
                 setModalOpen={setIsAtomicOpen}
-                level={getModal('atomic', 'level')}
+                level={modalsOpen['atomic'].level}
                 classy='normal'
             >
                 <AtomicModal 
@@ -238,7 +290,7 @@ export default function App() {
             <Modal
                 isOpen={isSearchOpen} 
                 setModalOpen={setIsSearchOpen}
-                level={getModal('search', 'level')}
+                level={modalsOpen['search'].level}
                 classy='normal'
             >
                 <SearchModal 
@@ -258,7 +310,7 @@ export default function App() {
             <Modal
                 isOpen={isFilterOpen} 
                 setModalOpen={setIsFilterOpen}
-                level={getModal('filter', 'level')}
+                level={modalsOpen['filter'].level}
                 classy='smaller'
             >
                 <FilterModal 
@@ -273,7 +325,7 @@ export default function App() {
             <Modal
                 isOpen={isElectronOpen} 
                 setModalOpen={setIsElectronOpen}
-                level={getModal('electron', 'level')}
+                level={modalsOpen['electron'].level}
                 classy='smaller'
             >
                 <ElectronModal
@@ -308,7 +360,7 @@ export default function App() {
                         {yBarElements}
                     </div>
                     <div className="periodic-table">
-                        {atomicAlements}
+                        {atomicElements}
                         <div className="periodic-categories">
                             {categoriesElements}
                         </div>
